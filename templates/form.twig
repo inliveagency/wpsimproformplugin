@@ -1,0 +1,283 @@
+{% if disable_css %}
+<style>
+    .b-simform{
+        width: 100%;
+        max-width: 1000px!important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    .enquiry_type__select{
+        display: none;
+    }
+    .b-simform label{
+        display: block;
+        margin: 0;
+        font-size: 0.875rem;
+        font-weight: normal;
+        line-height: 1.8;
+        color: #0a0a0a;
+        width: 100%;
+    }
+    .b-simform input[type=text], .b-simform input[type=email], .b-simform textarea {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        height: 2.4375rem;
+        margin: 0 0 1rem;
+        padding: 0.5rem;
+        border-radius: 3px;
+        background-color: #fff;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: normal;
+        line-height: 1.5;
+        transition: box-shadow 0.5s, border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border: 1px solid #8a8a8a;
+    }
+
+    .b-simform textarea{
+        height: auto;
+        resize: none;
+    }
+
+    .b-simform select{
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        height: 2.4375rem;
+        margin: 0 0 1rem;
+        padding: 0.5rem;
+        border-radius: 3px;
+        background-color: #fff;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: normal;
+        line-height: 1.5;
+        transition: box-shadow 0.5s, border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+        border: 1px solid #8a8a8a;
+    }
+
+    .b-simform input[type=text]:focus, .b-simform input[type=email]:focus, .b-simform textarea:focus, .b-simform select:focus {
+        outline: none;
+        border: 1px solid #8a8a8a;
+        background-color: #fefefe;
+        box-shadow: 0 0 5px #cacaca;
+        transition: box-shadow 0.5s, border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+    }
+
+    .b-simform input[type=submit] {
+
+    }
+    .b-simform__row{
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+    .b-simform__col_6, .b-simform__col_12, .b-simform__col_4{
+        margin-bottom: 10px;
+        width: 100%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    .b-simform__col_6{
+        width: 50%;
+    }
+    .b-simform__col_4{
+        width: 33.3333%;
+    }
+    .b-simform__submit{
+        display: block;
+        cursor: pointer;
+        background-color: #ff402d;
+        color: #fff;
+        border: 0;
+        padding: 15px;
+        border-radius: 3px;
+        font-size: 16px;
+    }
+    .b-simform__submit:hover{
+        opacity: .5;
+    }
+    .b-simform__response{
+        border: 2px solid green;
+        margin-top: 15px;
+        padding: 0 15px;
+        display: none;
+    }
+    .b-simform__response_fail{
+        border-color: red;
+    }
+</style>
+{% endif %}
+
+<script>
+    (function($){
+        $(document).ready(function(){
+            /*--------------------------------------------------------------
+            Enquiry Form
+            --------------------------------------------------------------*/
+            if ($("#simform").length) {
+                $( "#simform form" ).submit(function( event ) {
+                    event.preventDefault();
+
+                    var formData = new FormData($( "#simform form" )[0]);
+
+                    var $form = $('#simform form');
+
+                    $.ajax({
+                        type: "POST",
+                        url: $form.attr('action'),
+                        data: formData,
+                        cache:false,
+                        contentType: false,
+                        processData: false,
+                        success: function(data) {
+                            if (JSON.parse(data) == 'true') {
+                                $('#simform form')[0].reset();
+
+                                $('.b-simform__response_success').show();
+                                $('.b-simform__response_fail').hide();
+                                //location.reload();
+                            } else{
+                                $('.b-simform__response_success').hide();
+                                $('.b-simform__response_fail').show();
+                            }
+                        }
+                    });
+                });
+
+                $('#enquiry_type select').change(function() {
+                    value = $(this).val();
+                    $('.enquiry_type__select').hide();
+                    $('.enquiry_type_'+value).show();
+                });
+            }
+        });
+    })(jQuery)
+</script>
+
+<div class="b-simform" id="simform">
+    <form action="{{ simpro_form_url }}" class="b-simform__form" method="post">
+        <fieldset class="b-simform__fieldset">
+            <legend><h4>About you</h4></legend>
+            <div class="b-simform__row">
+                <div class="b-simform__col_6">
+                    <label for="first_name">First name</label>
+                    <input type="text" id="first_name" name="first_name" required />
+                </div>
+
+                <div class="b-simform__col_6">
+                    <label for="last_name">Last name</label>
+                    <input type="text" id="last_name" name="last_name" required />
+                </div>
+
+                <div class="b-simform__col_6">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="you@company.com" />
+                </div>
+
+                <div class="b-simform__col_6">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" name="phone" required placeholder="Your Phone" />
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="fieldset cell small-12">
+            <legend><h4>Address</h4></legend>
+            <div class="b-simform__row">
+                <div class="b-simform__col_12">
+                    <label for="address_1">Address 1</label>
+                    <input type="text" id="address_1" name="address_1" required />
+                </div>
+
+                <div class="b-simform__col_12">
+                    <label for="address_2">Address 2</label>
+                    <input type="text" id="address_2" name="address_2"/>
+                </div>
+
+                <div class="b-simform__col_4">
+                    <label for="postcode">Postal code</label>
+                    <input type="text" id="postcode" name="postcode"/>
+                </div>
+
+                <div class="b-simform__col_4">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city"/>
+                </div>
+
+                <div class="b-simform__col_4">
+                    <label for="county">County</label>
+                    <input type="text" id="county" name="county"/>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="fieldset cell small-12">
+            <legend><h4>Enquiry Details</h4></legend>
+            <div class="b-simform__row">
+                <div class="b-simform__col_6" id="enquiry_type">
+                    <label for="type">Enquiry Type</label>
+                    <select name="type" id="type" required>
+                        <option value="">Please Select</option>
+                        <option value="plumbing">Plumbing</option>
+                        <option value="heating">Heating</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="solar">Solar</option>
+                        <option value="electric_vehicle_chargers">Electric Vehicle Chargers</option>
+                    </select>
+                </div>
+
+                <div class="b-simform__col_6 enquiry_type__select enquiry_type_plumbing">
+                    <label for="plumbing">Plumbing</label>
+                    <select name="plumbing" id="plumbing">
+                        <option value="">Please Select</option>
+                        <option value="Bathrooms">Bathrooms</option>
+                        <option value="Emergency Plumbing">Emergency Plumbing</option>
+                        <option value="Hot Water Cylinder Installations">Hot Water Cylinder Installations</option>
+                        <option value="Water Systems and Tanks">Water Systems and Tanks</option>
+                        <option value="Kitchen Plumbing">Kitchen Plumbing</option>
+                        <option value="Drainage Systems">Drainage Systems</option>
+                    </select>
+                </div>
+
+                <div class="b-simform__col_6 enquiry_type__select enquiry_type_heating">
+                    <label for="heating">Heating</label>
+                    <select name="heating" id="heating">
+                        <option value="">Please Select</option>
+                        <option value="Boiler Installation">Boiler Installation</option>
+                        <option value="Boiler Maintenance">Boiler Maintenance</option>
+                        <option value="Heat Pumps">Heat Pumps</option>
+                        <option value="Oil Storage Tanks">Oil Storage Tanks</option>
+                        <option value="Heat Care">Heat Care</option>
+                    </select>
+                </div>
+
+                <div class="b-simform__col_12">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" required placeholder="Your Message" ></textarea>
+                </div>
+
+                <div class="b-simform__col_12">
+                    <button type="submit" class="b-simform__submit">Send Your Message</button>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="b-simform__response b-simform__response_success">
+            <p>{{ thank_you_text }}</p>
+        </div>
+
+        <div class="b-simform__response b-simform__response_fail">
+            <p>{{ fail_text }}</p>
+        </div>
+    </form>
+</div>
