@@ -50,7 +50,11 @@ class SimproFormPlugin
 
     public function wp_enqueue_script()
     {
-        wp_enqueue_script( 'jquery');
+        wp_enqueue_script( 'simpro_form',
+            plugin_dir_url( __FILE__ ) . 'assets/plugin.js',
+            array('jquery'),
+            md5(plugin_dir_path(__FILE__).'assets/plugin.js')
+        );
     }
 
 
@@ -170,6 +174,21 @@ class SimproFormPlugin
 
     public function form_submitting() {
         $address = "";
+        if($_POST['address_1']) {
+            $address .= "Address 1: " .$_POST['address_1'] . "<br>\n";
+        }
+        if($_POST['address_2']) {
+            $address .= "Address 2: " .$_POST['address_2'] . "<br>\n";
+        }
+        if($_POST['postcode']) {
+            $address .= "Postal code: " .$_POST['postcode'] . "<br>\n";
+        }
+        if($_POST['city']) {
+            $address .= "City: " .$_POST['city'] . "<br>\n";
+        }
+        if($_POST['county']) {
+            $address .= "County: " .$_POST['county'] . "<br>\n";
+        }
 
         $first_name = $_POST['first_name'];
         $last_name = $_POST['last_name'];
