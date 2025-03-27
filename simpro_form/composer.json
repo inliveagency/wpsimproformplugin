@@ -6,6 +6,7 @@
     },
     "require": {
         "htmlburger/carbon-fields": "^3.6",
-        "timber/timber": "^2.0"
+        "timber/timber": "^2.0",
+        "google/recaptcha": "^1.3"
     }
 }

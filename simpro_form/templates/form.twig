@@ -118,52 +118,6 @@
 </style>
 {% endif %}
 
-<script>
-    (function($){
-        $(document).ready(function(){
-            /*--------------------------------------------------------------
-            Enquiry Form
-            --------------------------------------------------------------*/
-            if ($("#simform").length) {
-                $( "#simform form" ).submit(function( event ) {
-                    event.preventDefault();
-
-                    var formData = new FormData($( "#simform form" )[0]);
-
-                    var $form = $('#simform form');
-
-                    $.ajax({
-                        type: "POST",
-                        url: $form.attr('action'),
-                        data: formData,
-                        cache:false,
-                        contentType: false,
-                        processData: false,
-                        success: function(data) {
-                            if (JSON.parse(data) == 'true') {
-                                $('#simform form')[0].reset();
-
-                                $('.b-simform__response_success').show();
-                                $('.b-simform__response_fail').hide();
-                                //location.reload();
-                            } else{
-                                $('.b-simform__response_success').hide();
-                                $('.b-simform__response_fail').show();
-                            }
-                        }
-                    });
-                });
-
-                $('#enquiry_type select').change(function() {
-                    value = $(this).val();
-                    $('.enquiry_type__select').hide();
-                    $('.enquiry_type_'+value).show();
-                });
-            }
-        });
-    })(jQuery)
-</script>
-
 <div class="b-simform" id="simform">
     <form action="{{ simpro_form_url }}" class="b-simform__form" method="post">
         <fieldset class="b-simform__fieldset">
@@ -263,7 +217,7 @@
 
                 <div class="b-simform__col_12">
                     <label for="message">Message</label>
-                    <textarea id="message" name="message" required placeholder="Your Message" ></textarea>
+                    <textarea id="message" name="message"  placeholder="Your Message" ></textarea>
                 </div>
 
                 <div class="b-simform__col_12">
@@ -280,4 +234,58 @@
             <p>{{ fail_text }}</p>
         </div>
     </form>
+
+    <script>
+        (function($){
+            $(document).ready(function(){
+                /*--------------------------------------------------------------
+                Enquiry Form
+                --------------------------------------------------------------*/
+                if ($("#simform").length) {
+                    $( "#simform form" ).submit(function( event ) {
+                        event.preventDefault();
+
+                        var $form = $('#simform form');
+
+                        grecaptcha.ready(function() {
+                            grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'simpro_lead'}).then(function(token) {
+                                $form.prepend('<input type="hidden" name="token" value="' + token + '">');
+
+                                var formData = new FormData($( "#simform form" )[0]);
+
+                                $.ajax({
+                                    type: "POST",
+                                    url: $form.attr('action'),
+                                    data: formData,
+                                    cache:false,
+                                    contentType: false,
+                                    processData: false,
+                                    success: function(data) {
+                                        var responce = JSON.parse(data);
+
+                                        if (responce.status === 'true') {
+                                            //$('#simform form')[0].reset();
+
+                                            $('.b-simform__response_success').show();
+                                            $('.b-simform__response_fail').hide();
+                                            //location.reload();
+                                        } else{
+                                            $('.b-simform__response_success').hide();
+                                            $('.b-simform__response_fail').html('<p>'+responce.error+'</p>').show();
+                                        }
+                                    }
+                                });
+                            });
+                        });
+                    });
+
+                    $('#enquiry_type select').change(function() {
+                        value = $(this).val();
+                        $('.enquiry_type__select').hide();
+                        $('.enquiry_type_'+value).show();
+                    });
+                }
+            });
+        })(jQuery)
+    </script>
 </div>

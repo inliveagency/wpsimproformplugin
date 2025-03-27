@@ -14,6 +14,9 @@ require_once 'vendor/autoload.php';
 
 class SimproFormPlugin
 {
+    public $recaptchaSiteKey;
+    public $recaptchaSecretKey;
+    public $recaptcha;
 
     public function __construct()
     {
@@ -50,11 +53,21 @@ class SimproFormPlugin
 
     public function wp_enqueue_script()
     {
-        wp_enqueue_script( 'simpro_form',
+        if(!empty($this->recaptchaSiteKey) && !empty($this->recaptchaSecretKey)) {
+            wp_enqueue_script( 'google_recaptcha',
+                'https://www.google.com/recaptcha/api.js?render='.$this->recaptchaSiteKey,
+                [],
+                3
+            );
+        }
+
+        wp_enqueue_script( 'jquery');
+
+        /*wp_enqueue_script( 'simpro_form',
             plugin_dir_url( __FILE__ ) . 'assets/plugin.js',
             array('jquery'),
             md5(plugin_dir_path(__FILE__).'assets/plugin.js')
-        );
+        );*/
     }
 
 
@@ -83,12 +96,19 @@ class SimproFormPlugin
                 Field::make( 'text', 'simpro_form_shortcode', 'Form shortcode')
                     ->set_attribute( 'readOnly', true )
                     ->set_default_value( '[simpro_form]' ),
+                Field::make( 'text', 'google_recaptcha_site_key', 'Google recaptcha site key'),
+                Field::make( 'text', 'google_recaptcha_secret_key', 'Google recaptcha secret key'),
             ) );
     }
 
     public function carbon_fields_values_are_available()
     {
-        //var_dump( carbon_get_theme_option( 'YourFancyPlugin_option_1' ) );
+        $this->recaptchaSiteKey = carbon_get_theme_option('google_recaptcha_site_key');
+        $this->recaptchaSecretKey = carbon_get_theme_option('google_recaptcha_secret_key');
+
+        if(!empty($this->recaptchaSecretKey)){
+            $this->recaptcha = new \ReCaptcha\ReCaptcha($this->recaptchaSecretKey);
+        }
     }
 
     public function simpro_form_shortcode($atts)
@@ -99,6 +119,10 @@ class SimproFormPlugin
         $context["simpro_form_url"] = admin_url('admin-ajax.php?action=simpro_form&nonce='.wp_create_nonce("simpro_form_nonce"));
         $context["thank_you_text"] = carbon_get_theme_option('simpro_thank_you_text');
         $context["fail_text"] = carbon_get_theme_option('simpro_fail_text');
+
+        if(!empty($this->recaptchaSiteKey)) {
+            $context["recaptcha_site_key"] = $this->recaptchaSiteKey;
+        }
 
         return Timber::compile('form.twig', $context);
     }
@@ -192,7 +216,7 @@ class SimproFormPlugin
 
         $first_name = $_POST['first_name'];
         $last_name = $_POST['last_name'];
-        $email = $_POST['email'];
+        $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         $phone = $_POST['phone'];
         $type = $_POST['type'];
         $plumbing = $_POST['plumbing'];
@@ -214,7 +238,6 @@ class SimproFormPlugin
             "LeadName" => carbon_get_theme_option('simpro_lead_name'),
             "Customer" => (int) carbon_get_theme_option('simpro_customer'),
             "Site" => (int) carbon_get_theme_option('simpro_site'),
-            "Stage" => "Open",
             "FollowUpDate" => $date,
             "Description"=> $details,
             "Notes" => "",
@@ -225,11 +248,25 @@ class SimproFormPlugin
         $url ='/api/v1.0/companies/'.carbon_get_theme_option('simpro_company').'/leads/';
         $newLead = $this->simpro_query($url, 'POST', $leadData);
 
-        if ($newLead['Data']['ID']) {
-            echo json_encode('true');
+        $pluginDir = WP_PLUGIN_DIR . '/simpro_form/';
+        $startDateTime = date('j_n_o_');
+        $log = fopen($pluginDir."logs/".$startDateTime."log.txt","a");
+
+        if(!empty($this->recaptchaSecretKey) && !$this->recaptcha->verify($_POST['token'])) {
+            echo json_encode(['error' => 'Invalid recaptcha', 'status' => 'false']);
+            fwrite($log, "[".date('Y-m-d H:i:s')."] FAIL ".'Invalid recaptcha'.PHP_EOL.PHP_EOL);
+        } elseif(empty($first_name) || empty($last_name) || $email === false || empty($phone) || empty($type) || empty($message) || empty($_POST['address_1'])) {
+            echo json_encode(['error' => 'Please fill the required fields', 'status' => 'false']);
+            fwrite($log, "[".date('Y-m-d H:i:s')."] FAIL ".'Please fill the required fields'.PHP_EOL.PHP_EOL);
+        } elseif ($newLead['Data']['ID']) {
+            echo json_encode(['error' => '', 'status' => 'true']);
+            fwrite($log, "[".date('Y-m-d H:i:s')."] OK ".json_encode($newLead).PHP_EOL.PHP_EOL);
         } else {
-            echo json_encode('false');
+            fwrite($log, "[".date('Y-m-d H:i:s')."] FAIL ".json_encode($newLead).PHP_EOL.PHP_EOL);
+            echo json_encode(['error' => carbon_get_theme_option('simpro_fail_text'), 'status' => 'false']);
         }
+        fclose($log);
+
         die();
     }
 }

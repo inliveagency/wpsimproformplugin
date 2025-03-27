@@ -24,6 +24,10 @@ class ComposerStaticInit58ad69fa62f9111b8586936d75a1fe08
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Ctype\\' => 23,
         ),
+        'R' => 
+        array (
+            'ReCaptcha\\' => 10,
+        ),
         'C' => 
         array (
             'Composer\\Installers\\' => 20,
@@ -51,6 +55,10 @@ class ComposerStaticInit58ad69fa62f9111b8586936d75a1fe08
         'Symfony\\Polyfill\\Ctype\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
+        ),
+        'ReCaptcha\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/google/recaptcha/src/ReCaptcha',
         ),
         'Composer\\Installers\\' => 
         array (
